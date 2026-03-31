@@ -11,7 +11,7 @@ class ListNode:
 class LinkedList:
     def __init__(self, value=None):
         self.head = ListNode(value) #Узел в начале списка
-        self.tail = self.head #Узел в концprint("ZOV")е списка
+        self.tail = self.head #Узел в конце списка
         self.length = 1 #Длина списка
     
     #Добавление узла в конец списка
