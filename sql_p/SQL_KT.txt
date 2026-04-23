@@ -1,0 +1,102 @@
+Задача 1
+
+SELECT students.last_name AS "Фамилия",
+students.first_name AS "Имя",
+students.middle_name AS "Отчество",
+groups.name AS "Имя Группы",
+groups.year AS "Год поступления" FROM students
+JOIN groups ON groups.group_id = students.group_id
+
+Задача 2
+
+SELECT groups.name AS "Имя группы", departments.name AS "Имя Факультета", faculties.name AS "Имя Кафедры"
+FROM groups
+JOIN departments ON groups.department_id = departments.department_id
+JOIN faculties ON departments.faculty_id = faculties.faculty_id;
+
+Задача 3
+
+SELECT students.first_name AS "Имя студента", courses.name AS "Название курса",
+grades.grade AS "Оценка", grades.exam_date AS "Дата экзамена"
+FROM students
+JOIN grades ON students.student_id = grades.student_id
+JOIN courses ON grades.course_id = courses.course_id
+WHERE grades.grade > 2;
+
+Задача 4
+
+SELECT teachers.last_name AS "Фамилия",
+teachers.first_name AS "Имя",
+teachers.middle_name AS "Отчество",teachers.position AS "Должность",
+departments.name AS "Кафедра", courses.name AS "Имя курса"
+FROM teachers
+JOIN departments ON departments.department_id = teachers.department_id
+JOIN courses ON courses.department_id = departments.department_id
+
+Задача 5
+
+SELECT last_name AS "Фамилия",
+first_name AS "Имя",
+middle_name AS "Отчество",
+groups.name AS "Название Группы",
+faculties.name AS "Имя факультета",
+AVG(grades.grade) as "Средняя оценка"
+FROM students
+JOIN groups on students.group_id=groups.group_id
+JOIN departments ON groups.department_id=departments.department_id
+join faculties on departments.faculty_id=faculties.faculty_id
+JOIN grades on students.student_id=grades.student_id
+group by students.last_name
+HAVING AVG(grades.grade)>4.5
+
+Задача 6
+
+SELECT
+courses.name AS Имя_Курса,
+departments.name AS Имя_Кафедры,
+COUNT(grades.student_id) AS Сдавшие,
+AVG(grades.grade) AS Средняя_Оценка,
+MAX(grades.grade) AS Максимальная_оценка
+FROM courses
+JOIN departments ON courses.department_id = departments.department_id
+JOIN grades ON courses.course_id = grades.course_id
+WHERE grades.grade > 2
+GROUP BY courses.course_id, courses.course_id, departments.name;
+
+Задча 7
+
+SELECT teachers.last_name AS Фамилия,
+teachers.first_name AS Имё,
+teachers.middle_name AS Отчество,
+teachers.position AS Должность,
+COUNT(grades.grade_id) AS Проведенных_экзаменов,
+AVG(grades.grade) AS Средняя_поставленная_оценка
+FROM teachers
+JOIN grades ON teachers.teacher_id = grades.teacher_id
+GROUP BY
+teachers.teacher_id, teachers.last_name, teachers.position;
+
+Задача 8
+
+SELECT groups.name AS Имя_Группы
+FROM groups
+LEFT JOIN students ON groups.group_id = students.group_id
+WHERE students.student_id IS NULL;
+
+Задача 9
+
+SELECT students.first_name AS Имя_Студента
+FROM students
+LEFT JOIN grades ON grades.student_id = students.student_id
+WHERE grades.grade_id IS NULL
+
+Задача 10
+
+SELECT students.first_name AS Имя, students.last_name AS Фамилия, AVG(grades.grade) AS Средняя_Оценка
+FROM students
+JOIN grades ON students.student_id = grades.student_id
+GROUP BY students.student_id, students.first_name, students.last_name
+ORDER BY Средняя_Оценка DESC
+LIMIT 3;
+
+

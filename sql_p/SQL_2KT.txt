@@ -1,0 +1,46 @@
+1 Задание - Написать функцию проверяющую самолет по длине
+
+DELIMITER //
+
+CREATE FUNCTION LenChecker(len DECIMAL(5,2))
+
+RETURNS VARCHAR(20)
+
+DETERMINISTIC
+
+BEGIN
+	IF len > 100.00 THEN
+		RETURN "Слишком длинный";
+	ELSE
+		RETURN "Нормальная длина";
+	END IF;
+END;
+
+DELIMITER ;
+
+//тест вызова функции (работает!)
+SELECT plane_length FROM airplanes
+WHERE LenChecker(plane_length) = "Слишком длинный"
+
+2 Задание - Написать процедуру которая выводит названия самолетов
+
+DELIMITER //
+
+CREATE PROCEDURE getInfo()
+
+BEGIN
+	SELECT airplanes.plane AS "Имя самолёта", manufacturers.manufacturer AS "Производитель",
+	airplanes.plane_length AS "Длина самолета", LenChecker(airplanes.plane_length) AS "Статус самолёта"
+
+	FROM airplanes
+	JOIN manufacturers ON airplanes.manufacturer_id = manufacturers.manufacturer_id;
+END //
+
+DELIMITER ;
+
+//проверка (работает)
+CALL getInfo();
+
+3 Задание - Триггер при Инсерте в airplanes апдейтит старое значение сред.веса самолетов и добавьте новое в mean_weight
+
+
