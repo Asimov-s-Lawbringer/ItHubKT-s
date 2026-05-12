@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Банк</title>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        <input name="user_name" placeholder="Имя">
+        <input name="user_phone" placeholder="Телефон">
+        <button type="submit">Зарегестрироваться</button>
+        <div>{{ input }}</div>
+    </form>
+</body>
+</html>
