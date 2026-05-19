@@ -1,0 +1,276 @@
+1)Иннициация Таблиц
+
+CREATE TABLE Accounts (
+id INT AUTO_INCREMENT PRIMARY KEY,
+amount DECIMAL(5,2) NOT NULL,
+account_number VARCHAR(20),
+user_id INT,
+
+FOREIGN KEY (user_id) REFERENCES Users(id)
+);
+
+CREATE TABLE Users (
+id INT PRIMARY KEY AUTO_INCREMENT,
+name VARCHAR(30),
+phone_number VARCHAR(12)
+);
+
+INSERT INTO Users (name,phone_number)
+VALUES ("Vitaly","7930123456");
+
+INSERT INTO Users (name,phone_number)
+VALUES ("Timofey","799999999");
+
+INSERT INTO Account (balance,account_number,user_id)
+VALUES ("500.00","ACC-001",1);
+
+INSERT INTO Account (balance,account_number,user_id)
+VALUES ("300.00","ACC-002",2);
+
+2)Создание Процедуры
+
+DELIMITER //
+
+CREATE PROCEDURE Transaction (
+IN sender_acc VARCHAR(20), -- сюда номер аккаунта отправиетеля
+IN reciever_acc VARCHAR(20),-- сюда получателя (аккаунты связаны внешним ключом)
+IN amount DECIMAL(5,2) -- сюда сколько средствр передавать
+)
+
+BEGIN
+	DECLARE sender_balance DECIMAL(5, 2); -- переменная для проверок
+
+	START TRANSACTION;-- все что после можно отменить при ошибке
+
+	SELECT balance INTO sender_balance FROM Accounts -- берем количество денег и записываем в баланс отправителя
+	WHERE account_number = sender_acc FOR UPDATE; -- где номер счета == указанному номеру счета
+
+	IF sender_balance >= amount THEN -- если денег хватает то начинаем перевод
+		UPDATE Accounts SET balance = balance - amount -- списываем
+		WHERE account_number = sender_acc -- у отправителя
+
+		UPDATE Accounts SET balance = balance + amount -- прибавляем
+		WHERE account_number = reciever_acc -- получателю
+
+		COMMIT; -- подтверждаем операцию
+	ELSE -- или если денег недостаточно
+		ROLLBACK; -- откатываем все как было до STAR T TRANSACtion
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT= 'Сумма отправки больше чем имеющиеся средства'
+	ENDIF;
+END//
+
+3)Скрипт (Django)
+
+views.py
+
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.http import JsonResponse
+from db_connect import data_base_connector
+from firstapp.models import Events
+from firstapp.models import Customer
+
+
+#from django.contrib import messages
+# Create your views here.
+def get_user(request):
+    if request.method == 'POST':
+        username = request.POST.get("user_name")
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        try:
+            Customer.object.get_or_create(username=f'{username}',name=f'{name}',email=f'{email}')
+            all_objects = Customer.objects.all()
+        except:
+            print("ошибк")
+        finally:
+            for event in all_objects:
+                print(event.id)
+                print(event.username)from django.shortcuts import render
+                print(event.name)
+                print(event.email)
+            return render(request,'user_form_KT_django.html')
+
+def make_transaction(request):
+    if request.method == "POST":
+        connection = data_base_connector()
+        sender_acc = request.POST.get("sender_acc")
+        receiver_acc = request.POST.get("receiver_acc")
+        amount = request.POST.get("amount")
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('MakeTransaction', [sender_acc,receiver_acc,amount])
+        except:
+            print("Ошибка в передаче")
+        finally:
+            connection.commit()
+            connection.close()
+    return render(request,'make_transaction.html')
+
+
+def user_login(request):
+    if request.method == "POST":
+        connection = data_base_connector()
+        login_name = request.POST.get("user_name")
+        phone = request.POST.get("user_phone")
+
+        try:
+            with connection.cursor() as cursor:
+                # ищем юзера
+                sql = "SELECT name FROM Users WHERE name = %s AND phone = %s;"
+                cursor.execute(sql, (login_name, phone))
+
+                # читаем
+                result = cursor.fetchone()
+
+            # смотрим на строку
+            if result:
+                name_from_db = result['name'] if isinstance(result, dict) else result[0]
+                if name_from_db == login_name:
+                    print("Вы вошли")
+                    #return redirect(' ')  перенаправляем (пока не готово)
+
+            # Если юзер не найден
+            print("Неверное имя или телефон")
+            return render(request, 'login.html', {'error': 'Неверные данные'})
+
+        except Exception as e:
+            print(f"Ошибка базы данных: {e}")
+            return render(request, 'login.html', {'error': 'Ошибка сервера'})
+
+        finally:
+            connection.close()
+    return render(request, 'login.html')
+
+
+def user_registration(request):
+    if request.method == "POST":
+        connection = data_base_connector()
+        name = request.POST.get("user_name")
+        phone = request.POST.get("user_phone")
+        #balance = request.POST.get("balance")
+        #account_number = request.POST.get("account_number")
+        try:
+            with connection.cursor() as cursor:
+                cursor.callproc('create_user', [name, phone])
+            print(name)
+            print(phone)
+            #redirect-> accounts.html
+        except:
+            print("Ошибка в передаче")
+            connection.close()
+        finally:
+            connection.commit()
+            connection.close()
+    return render(request,'registration.html')
+
+urls.py
+
+from django.contrib import admin
+from django.urls import path
+from firstapp import views
+
+urlpatterns = [
+    path('',views.table),
+    path('transaction/',views.make_transaction),
+    path('get_user/',views.get_user),
+    path('registration/',views.user_registration),
+    path('post_form/',views.post_form),
+    path('admin/', admin.site.urls),
+    path('hello/',views.helloEcho),
+    path('math/<str:value>/', views.mathTracker)
+]
+
+html
+
+registration.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Банк</title>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        <input name="user_name" placeholder="Имя">
+        <input name="user_phone" placeholder="Телефон">
+        <button type="submit">Зарегестрироваться</button>
+        <div>{{ input }}</div>
+    </form>
+</body>
+</html>
+
+make_transaction.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перевод</title>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        <input name="sender_acc" placeholder="Номер Отправителя">
+        <input name="receiver_acc" placeholder="Номер Получателя">
+        <input name="amount" placeholder="Сумма перевода">
+        <button type="submit">Перевести</button>
+    </form>
+</body>
+</html>
+
+login.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+</head>
+<body>
+        <form method="post">
+        {% csrf_token %}
+        <input name="user_name" placeholder="Имя">
+        <input name="user_phone" placeholder="Телефон">
+        <button type="submit">Войти</button>
+</body>
+</html>
+
+user_form_KT_django.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post">
+        {% csrf_token %}
+        <input name="username">
+        <input name="name">
+        <input name="email"
+        <button type="submit">Отправка</button>
+    </form>
+</body>
+</html>
+
+db.py
+
+import pymysql
+
+def data_base_connector():
+    return pymysql.connect(
+        host='localhost',
+        port=***,
+        user='***',
+        password='***',
+        database='DB_KT_Transactions',
+        cursorclass=pymysql.cursors.DictCursor
+    )
