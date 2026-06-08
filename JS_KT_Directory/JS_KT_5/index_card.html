@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Банковский Лендинг</title>
+</head>
+<body>
+    <div class="container" style="display:flex; gap:20px; padding:20px;">
+        <form id="formaDlyaCarty" style="display: flex; flex-direction: column; gap: 20px; width: 603px;">
+            <h1>Заполните пожалуйста Форму, чтобы оформить карту любого банка</h1>
+            <div>
+                <label>Ваше Имя:</label>
+                <input type="text" id="nameDlyaCarty" placeholder="Александр Андерсон" maxlength="20">
+            </div>
+
+            <div>
+                <label>Платежная система:</label>
+                <input type="text" id="systemDlyaCarty" placeholder="Visa/Mastercard" maxlength="10">
+            </div>
+
+            <div>
+                <label>Желаемый Банк:</label>
+                <input type="text" id="bankDlyaCarty" placeholder="Т-Банк, ВТБ, Сбербранк" maxlength="20">
+            </div>
+
+            <div>
+                <label>Месяц и год окончания:</label>
+                <input type="text" id="YearDlyaCarty" placeholder=" 19 Январь 2038 в 03:14:07 UTC " maxlength="20">
+            </div>
+
+            <div>
+                <label>Номер Вашей Карты:</label>
+                <input type="text" id="NomerCartyDlyaCarty" placeholder="0123 4567 8901 2345" maxlength="19">
+            </div>
+        </form>
+
+        <div id="BankovskaCarta" style="width: 352px ; height:202px; color:navy; border-radius: 25px; padding: 23px; display: flex; flex-direction: column; justify-content: space-between; background-color: #f0f0f0; border: 2px solid navy;" >
+            <div>
+                <div>Банк</div>
+                <div id="prewieBankDlyaCarty"></div>
+            </div>
+
+            <div>
+            <div>Данные карты</div>
+            <div id="prewieNumbersDlyaCarty">**** **** **** ****</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <div>Владелец Карты:</div>
+                    <div id="prewieNameDlyaCarty"></div>
+                </div>
+
+                <div>
+                    <div>Платежная система:</div>
+                    <div id="prewieSystemyDlyaCarty"></div>
+                </div>
+            </div>
+
+            <div>
+                <div>Карта истекает:</div>
+                <div id="prewieIstekaetDlyaCarty"></div>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" id="saveBtn">Оформить карту</button>
+
+    <table id="cardsTable" border="1" style="margin-top: 20px; width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Владелец</th>
+                <th>Платеж. Система</th>
+                <th>Банк</th>
+                <th>Окончание действия</th>
+                <th>Номер</th>
+            </tr>
+        </thead>
+    <tbody id="tableTelo"></tbody>
+    </table>
+
+    <script src="Java_Script_Engine.js"></script>
+</body>
+</html>
